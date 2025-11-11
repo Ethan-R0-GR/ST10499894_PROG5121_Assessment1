@@ -10,3 +10,45 @@
   "recipient": "+27098765432",
   "message": "WEEEEEEEEEEEEEE"
 }
+{
+  "type": "sent",
+  "messageID": "1959542816",
+  "messageHash": "19:0:HELLOFRIEND",
+  "recipient": "+27123456789",
+  "message": "hello there friend"
+}
+{
+  "type": "sent",
+  "messageID": "6800905869",
+  "messageHash": "68:1:THISODD",
+  "recipient": "+27098765432",
+  "message": "this is odd"
+}
+{
+  "type": "stored",
+  "messageID": "3837659400",
+  "messageHash": "38:0:WAHHHHHHHHHHHHHHHHWAHHHHHHHHHHHHHHHH",
+  "recipient": "+27098765432",
+  "message": "WAHHHHHHHHHHHHHHHH"
+}
+{
+  "type": "sent",
+  "messageID": "0246449438",
+  "messageHash": "02:2:WACHATTACK",
+  "recipient": "+27098765432",
+  "message": "Wach attack"
+}
+{
+  "type": "sent",
+  "messageID": "7990880437",
+  "messageHash": "79:3:WEGANG",
+  "recipient": "+27098765432",
+  "message": "we the wiggle gang"
+}
+{
+  "type": "sent",
+  "messageID": "4023306483",
+  "messageHash": "40:4:SNPAFOOBABY!!!!!!!",
+  "recipient": "+27098765432",
+  "message": "snpafoo is live baby!!!!!!!"
+}

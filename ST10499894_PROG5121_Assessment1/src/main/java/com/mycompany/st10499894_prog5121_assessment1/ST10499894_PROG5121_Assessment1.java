@@ -2,7 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 package com.mycompany.st10499894_prog5121_assessment1;
-import java.util.Scanner;
+import javax.swing.JOptionPane;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 
 /**
  *
@@ -12,15 +15,24 @@ public class ST10499894_PROG5121_Assessment1 {
     // Create objects we'll use later in the program
     private static Login loginSystem = new Login();
     private static Message messageSystem = new Message();
-    private static Scanner scanner = new Scanner(System.in);
     private static boolean isLoggedIn = false;
     private static String currentUser = "";
     
     public static void main(String[] args) {
-        // Creates a little welcome message when the program starts
+        // Welcome message in console (just for startup confirmation)
         System.out.println("====================================");
         System.out.println("Welcome to Chat App :)");
         System.out.println("====================================");
+        
+        // Load any stored messages from JSON file
+        String loadResult = messageSystem.loadStoredMessages();
+        System.out.println(loadResult); // Console feedback for debugging
+        
+        // Show welcome dialog
+        JOptionPane.showMessageDialog(null, 
+            "Welcome to Chat App! :)\n\n" + loadResult,
+            "Chat App - Startup",
+            JOptionPane.INFORMATION_MESSAGE);
         
         // Main program loop
         while(true) {
@@ -34,20 +46,19 @@ public class ST10499894_PROG5121_Assessment1 {
         }
     }
     
-    // menu for login, registration or to exit prohram using JOptionPane, this replaced my console menu
+    // Menu for login, registration or to exit program using JOptionPane
     private static void showLoginMenu() {
         String[] options = {"Register new user", "Login existing user", "Exit program"};
-        int choice = javax.swing.JOptionPane.showOptionDialog(
+        int choice = JOptionPane.showOptionDialog(
             null,
             "Welcome to Chat App :)\n\nPlease choose an option:",
             "Chat App - Main Menu",
-            javax.swing.JOptionPane.DEFAULT_OPTION,
-            javax.swing.JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
             null,
             options,
             options[0]
         );
-        
         
         // the switch works with the choice to run the correct method
         switch(choice) {
@@ -58,155 +69,476 @@ public class ST10499894_PROG5121_Assessment1 {
                 loginExistingUser();
                 break;
             case 2:
-            case javax.swing.JOptionPane.CLOSED_OPTION:
-                System.out.println("Thank you for using Chat App! Goodbye!");
+            case JOptionPane.CLOSED_OPTION:
+                JOptionPane.showMessageDialog(null,
+                    "Thank you for using Chat App! Goodbye!",
+                    "Goodbye",
+                    JOptionPane.INFORMATION_MESSAGE);
                 System.exit(0);
             default:
-                javax.swing.JOptionPane.showMessageDialog(null, 
-                    "Invalid option. Please choose 1, 2, or 3.",
+                JOptionPane.showMessageDialog(null, 
+                    "Invalid option. Please try again.",
                     "Error",
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    // menu for messaging that appears after being logged in
+    // Menu for messaging, made a vertical layout with JList
     private static void showMessageMenu() {
-        System.out.println("\n====================================");
-        System.out.println(" MESSAGING MENU ");
-        System.out.println("====================================");
-        System.out.println("1. Send new message");
-        System.out.println("2. View all sent messages");
-        System.out.println("3. View total messages sent");
-        System.out.println("4. Logout");
-        System.out.println("5. Exit program");
-        System.out.print("Enter your choice: ");
+        String[] options = {
+            "1. Send new message",
+            "2. View all sent messages",
+            "3. View stored messages",
+            "4. View total messages sent",
+            "5. Display longest message",
+            "6. Search message by ID",
+            "7. Search messages by recipient",
+            "8. Delete message by hash",
+            "9. Display full report",
+            "10. Logout",
+            "11. Exit program"
+        };
         
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Clear memory? buffer? not sure what to call it
+        // Create JList for vertical display
+        JList<String> list = new JList<>(options);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setSelectedIndex(0);
+        list.setVisibleRowCount(11);
         
-        switch(choice) {
-            case 1:
-                sendNewMessage();
-                break;
-            case 2:
-                viewAllMessages();
-                break;
-            case 3:
-                viewTotalMessages();
-                break;
-            case 4:
-                logout();
-                break;
-            case 5:
-                System.out.println("Thank you for using Chat App! Goodbye!");
-                System.exit(0);
-            default:
-                System.out.println("Invalid option. Please try again.");
+        JScrollPane scrollPane = new JScrollPane(list);
+        
+        int result = JOptionPane.showConfirmDialog(
+            null,
+            scrollPane,
+            "Welcome " + currentUser + "! - Select an option:",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(result == JOptionPane.OK_OPTION) {
+            int choice = list.getSelectedIndex();
+            
+            switch(choice) {
+                case 0: // Send new message
+                    sendNewMessage();
+                    break;
+                case 1: // View all sent messages
+                    viewAllMessages();
+                    break;
+                case 2: // View stored messages
+                    viewStoredMessages();
+                    break;
+                case 3: // View total messages sent
+                    viewTotalMessages();
+                    break;
+                case 4: // Display longest message
+                    displayLongestMessage();
+                    break;
+                case 5: // Search message by ID
+                    searchByMessageID();
+                    break;
+                case 6: // Search messages by recipient
+                    searchByRecipient();
+                    break;
+                case 7: // Delete message by hash
+                    deleteByHash();
+                    break;
+                case 8: // Display full report
+                    displayReport();
+                    break;
+                case 9: // Logout
+                    logout();
+                    break;
+                case 10: // Exit program
+                    JOptionPane.showMessageDialog(null,
+                        "Thank you for using Chat App! Goodbye!",
+                        "Goodbye",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    System.exit(0);
+                    break;
+            }
+        } else if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
+            // User cancelled,return to menu
+            return;
         }
     }
     
-    //handle user registration
+    // Handle user registration
     private static void registerNewUser() {
-        System.out.println("\n--- USER REGISTRATION ---");
+        // Get username
+        String username = JOptionPane.showInputDialog(
+            null,
+            "Enter username:\n(must contain _ and be max 5 characters)",
+            "User Registration - Username",
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        System.out.print("Enter username (must contain _ and be max 5 chars): ");
-        String username = scanner.nextLine();
+        if(username == null) return; // User cancelled
         
-        System.out.print("Enter password (min 8 chars, need capital, number, special): ");
-        String password = scanner.nextLine();
+        // Get password
+        String password = JOptionPane.showInputDialog(
+            null,
+            "Enter password:\n(min 8 chars, need capital, number, special character)",
+            "User Registration - Password",
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        System.out.print("Enter cell phone number (format: +27xxxxxxxxx): ");
-        String cellPhone = scanner.nextLine();
+        if(password == null) return;
+        
+        // Get cell phone
+        String cellPhone = JOptionPane.showInputDialog(
+            null,
+            "Enter cell phone number:\n(format: +27xxxxxxxxx)",
+            "User Registration - Cell Phone",
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(cellPhone == null) return;
         
         // Try to register the user
         String result = loginSystem.registerUser(username, password, cellPhone);
-        System.out.println("\nRegistration Result:");
-        System.out.println(result);
+        
+        // Show result
+        if(result.contains("successfully")) {
+            JOptionPane.showMessageDialog(null,
+                result,
+                "Registration Successful",
+                JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null,
+                result,
+                "Registration Failed",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
-    //login by getting username and password
+    // Login by getting username and password
     private static void loginExistingUser() {
-        System.out.println("\n--- USER LOGIN ---");
+        // Get username
+        String username = JOptionPane.showInputDialog(
+            null,
+            "Enter your username:",
+            "User Login - Username",
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        System.out.print("Enter your username: ");
-        String username = scanner.nextLine();
+        if(username == null) return;
         
-        System.out.print("Enter your password: ");
-        String password = scanner.nextLine();
+        // Get password
+        String password = JOptionPane.showInputDialog(
+            null,
+            "Enter your password:",
+            "User Login - Password",
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        // try login
+        if(password == null) return;
+        
+        // Try login
         boolean loginSuccess = loginSystem.loginUser(username, password);
         String loginMessage = loginSystem.returnLoginStatus(loginSuccess, username);
         
-        System.out.println("\nLogin Result:");
-        System.out.println(loginMessage);
-        
-        // set logged in if seccuessful
+        // Show result
         if(loginSuccess) {
             isLoggedIn = true;
             currentUser = username;
+            JOptionPane.showMessageDialog(null,
+                loginMessage,
+                "Login Successful",
+                JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null,
+                loginMessage,
+                "Login Failed",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
     
     // Method for sending new message
     private static void sendNewMessage() {
-        System.out.println("\n--- SEND NEW MESSAGE ---");
+        // Get number of messages
+        String numStr = JOptionPane.showInputDialog(
+            null,
+            "How many messages do you want to send?",
+            "Send Message - Count",
+            JOptionPane.QUESTION_MESSAGE
+        );
         
-        // amount of message sthat needs to be sent
-        System.out.print("How many messages do you want to send? ");
-        int numberOfMessages = scanner.nextInt();
-        scanner.nextLine();
+        if(numStr == null) return;
+        
+        int numberOfMessages;
+        try {
+            numberOfMessages = Integer.parseInt(numStr);
+        } catch(NumberFormatException e) {
+            JOptionPane.showMessageDialog(null,
+                "Invalid number! Please enter a valid number.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         
         // Loop through and create each message
-        for(int i = 0; i < numberOfMessages; i++) { // dynamic messag for total messagas
-            System.out.println("\n--- Message " + (i + 1) + " of " + numberOfMessages + " ---");
+        for(int i = 0; i < numberOfMessages; i++) {
+            // Show progress
+            String recipient = JOptionPane.showInputDialog(
+                null,
+                "Message " + (i + 1) + " of " + numberOfMessages + "\n\n" +
+                "Enter recipient cell number:\n(format: +27xxxxxxxxx)",
+                "Send Message - Recipient",
+                JOptionPane.QUESTION_MESSAGE
+            );
             
-            System.out.print("Enter recipient cell number (format: +27xxxxxxxxx): ");
-            String recipient = scanner.nextLine();
+            if(recipient == null) continue; // Skip this message
             
-            System.out.print("Enter your message (max 250 characters): ");
-            String message = scanner.nextLine();
+            // Get message text
+            String message = JOptionPane.showInputDialog(
+                null,
+                "Message " + (i + 1) + " of " + numberOfMessages + "\n\n" +
+                "Enter your message:\n(max 250 characters)",
+                "Send Message - Content",
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if(message == null) continue; // Skip this message
             
             // Validate the message
             String validationResult = messageSystem.sendMessage(recipient, message);
-            System.out.println("\n" + validationResult);
             
             // If validation succeeded ask user what to do
             if(validationResult.equals("Message ready to send.")) {
-                System.out.println("\nChoose an option:");
-                System.out.println("1. Send Message");
-                System.out.println("2. Disregard Message");
-                System.out.println("3. Store Message to send later");
-                System.out.print("Enter choice (1-3): ");
+                String[] messageOptions = {"Send Message", "Disregard Message", "Store Message to send later"};
+                int choice = JOptionPane.showOptionDialog(
+                    null,
+                    "Message is valid!\n\nRecipient: " + recipient + "\n" +
+                    "Message: " + message + "\n\nWhat would you like to do?",
+                    "Send Message - Action",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    messageOptions,
+                    messageOptions[0]
+                );
                 
-                int choice = scanner.nextInt();
-                scanner.nextLine(); // Clear buffer
-                
-                String result = messageSystem.processMessage(recipient, message, choice);
-                System.out.println("\n" + result);
+                if(choice >= 0 && choice <= 2) {
+                    String result = messageSystem.processMessage(recipient, message, choice + 1);
+                    // processMessage shows JOptionPane for sent messages
+                    if(choice != 0) { // Don't show duplicate
+                        JOptionPane.showMessageDialog(null,
+                            result,
+                            "Message Processed",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } else {
+                // Show validation error
+                JOptionPane.showMessageDialog(null,
+                    validationResult,
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
         
         // Show total messages after sending all
-        System.out.println("\nTotal messages sent: " + messageSystem.returnTotalMessages());
+        JOptionPane.showMessageDialog(null,
+            "Total messages sent: " + messageSystem.returnTotalMessages(),
+            "Send Message - Complete",
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     // Method to view all sent messages
     private static void viewAllMessages() {
-        System.out.println(messageSystem.printMessages());
+        String messages = messageSystem.printMessages();
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(messages);
+        textArea.setEditable(false);
+        textArea.setRows(20);
+        textArea.setColumns(60);
+        textArea.setCaretPosition(0); // Scroll to top
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "All Sent Messages",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // Method to view stored messages
+    private static void viewStoredMessages() {
+        String messages = messageSystem.displayStoredMessages();
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(messages);
+        textArea.setEditable(false);
+        textArea.setRows(20);
+        textArea.setColumns(60);
+        textArea.setCaretPosition(0); // Scroll to top
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "Stored Messages",
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     // Method to view total messages count
     private static void viewTotalMessages() {
-        System.out.println("\n--- MESSAGE STATISTICS ---");
-        System.out.println("Total number of messages sent: " + messageSystem.returnTotalMessages());
+        JOptionPane.showMessageDialog(null,
+            "Total number of messages sent: " + messageSystem.returnTotalMessages(),
+            "Message Statistics",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // Method to display longest message
+    private static void displayLongestMessage() {
+        String result = messageSystem.displayLongestMessage();
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(result);
+        textArea.setEditable(false);
+        textArea.setRows(15);
+        textArea.setColumns(50);
+        textArea.setCaretPosition(0); // Scroll to top
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "Longest Message",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // Method to search by message ID
+    private static void searchByMessageID() {
+        String messageID = JOptionPane.showInputDialog(
+            null,
+            "Enter message ID to search:",
+            "Search by Message ID",
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(messageID == null) return;
+        
+        String result = messageSystem.searchMessageByID(messageID);
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(result);
+        textArea.setEditable(false);
+        textArea.setRows(10);
+        textArea.setColumns(50);
+        textArea.setCaretPosition(0); // Scroll to top
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "Search Results",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // Method to search by recipient
+    private static void searchByRecipient() {
+        String recipient = JOptionPane.showInputDialog(
+            null,
+            "Enter recipient cell number:\n(format: +27xxxxxxxxx)",
+            "Search by Recipient",
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(recipient == null) return; // User cancelled
+        
+        String result = messageSystem.searchMessagesByRecipient(recipient);
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(result);
+        textArea.setEditable(false);
+        textArea.setRows(15);
+        textArea.setColumns(50);
+        textArea.setCaretPosition(0); // Scroll to top
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "Search Results - " + recipient,
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // Method to delete by hash
+    private static void deleteByHash() {
+        String hash = JOptionPane.showInputDialog(
+            null,
+            "Enter message hash to delete:\n(format: 12:0:DIDCAKE?)",
+            "Delete Message by Hash",
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(hash == null) return;
+        
+        // Confirm deletion
+        int confirm = JOptionPane.showConfirmDialog(
+            null,
+            "Are you sure you want to delete the message with hash:\n" + hash + "?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        
+        if(confirm == JOptionPane.YES_OPTION) {
+            String result = messageSystem.deleteMessageByHash(hash);
+            
+            if(result.contains("successfully")) {
+                JOptionPane.showMessageDialog(null,
+                    result,
+                    "Deletion Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                    result,
+                    "Deletion Failed",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    // Method to display full report
+    private static void displayReport() {
+        String report = messageSystem.displayMessageReport();
+        
+        // Create scrollable text area
+        javax.swing.JTextArea textArea = new javax.swing.JTextArea(report);
+        textArea.setEditable(false);
+        textArea.setRows(20);
+        textArea.setColumns(60);
+        textArea.setCaretPosition(0); 
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        
+        JOptionPane.showMessageDialog(null,
+            scrollPane,
+            "Complete Message Report",
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     // Method to logout
     private static void logout() {
-        System.out.println("\nLogging out " + currentUser + "...");
-        isLoggedIn = false;
-        currentUser = "";
-        System.out.println("Successfully logged out!");
+        int confirm = JOptionPane.showConfirmDialog(
+            null,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if(confirm == JOptionPane.YES_OPTION) {
+            JOptionPane.showMessageDialog(null,
+                "Goodbye " + currentUser + "!\nYou have been logged out successfully.",
+                "Logged Out",
+                JOptionPane.INFORMATION_MESSAGE);
+            isLoggedIn = false;
+            currentUser = "";
+        }
     }
 }
